@@ -135,20 +135,20 @@ if [ $stage -le 5 ]; then
     fi
 
     for fld in dev eval train ; do
-	steps/make_mfcc.sh \
+	steps/make_plp_pitch.sh \
 	    --cmd run.pl \
 	    --nj 4 \
 	    data/$fld \
-	    exp/make_mfcc/$fld \
-	    mfcc || exit 1;
+	    exp/make_plp_pitch/$fld \
+	    plp_pitch || exit 1;
 
 	utils/fix_data_dir.sh \
 	    data/$fld || exit 1;
 
 	steps/compute_cmvn_stats.sh \
 	    data/$fld \
-	    exp/make_mfcc/$fld \
-	    mfcc || exit 1;
+	    exp/make_plp_pitch/$fld \
+	    plp_pitch || exit 1;
 
 	utils/fix_data_dir.sh \
 	    data/$fld || exit 1;
