@@ -59,7 +59,7 @@ open my $T, '+>', $t or croak "problem with $t $!";
      my ($volume,$directories,$file) = File::Spec->splitpath( $line );
      my $u = basename $line, ".wav";
      my ($s,$i) = split /\_/, $u, 2;
-     $s =~ s/GE(\d{1,3})/$1/;
+     #$s =~ s/GE(\d{1,3})/$1/;
 
      if ( exists $p{$u} ) {
 	 print $T "$u\t$p{$u}\n";
