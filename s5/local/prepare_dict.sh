@@ -13,9 +13,29 @@ fi
 
 export LC_ALL=C
 
-sort \
+# get the phones
+cut \
+    -f2- \
+    -d "	" \
     data/local/tmp/gp/german/dict/lexicon.txt \
     | \
+    tr -s '[:space:]' '[\n*]' \
+    | \
+    grep \
+	-v \
+	SPN \
+    | \
+        sort \
+    | \
+    uniq \
+	> \
+	data/local/dict/nonsilence_phones.txt
+
+expand \
+    data/local/tmp/gp/german/dict/lexicon.txt \
+    | \
+    sort \
+	| \
     uniq \
     | \
     sed "1d" \
@@ -38,23 +58,6 @@ echo \
     SIL \
     > \
     data/local/dict/optional_silence.txt
-
-cut \
-    -f2- \
-    -d "	" \
-    data/local/dict/lexicon.txt \
-    | \
-    tr -s '[:space:]' '[\n*]' \
-    | \
-    grep \
-	-v \
-	SPN \
-    | \
-        sort \
-    | \
-    uniq \
-	> \
-	data/local/dict/nonsilence_phones.txt
 
 (
     tr '\n' ' ' < data/local/dict/silence_phones.txt;
