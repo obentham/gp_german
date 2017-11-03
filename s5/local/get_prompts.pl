@@ -11,6 +11,8 @@ $0 dev
 ";
 }
 
+use File::Basename;
+
 my ($fld) = @ARGV;
 
 my $tmpdir = "data/local/tmp/gp/german";
@@ -23,7 +25,17 @@ open my $O, '+>', "$o" or croak "problems with $o  $!";
 
 while ( my $line = <$L> ) {
     chomp $line;
-    open my $T, '<', $line or croak "problems with $line $!";
+    my $d = dirname $line;
+    my $b = basename $line, ".trl";
+
+    system "iconv \\
+-f ISO_8859-1 \\
+-t utf8 \\
+$line \\
+> \\
+$d/$b.txt";
+
+    open my $T, '<', "$d/$b.txt" or croak "problems with $d/$b.txt $!";
     my $spkr = "";
     my $sn = 0;
     LINE: while ( my $linea = <$T> ) {
