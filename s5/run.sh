@@ -9,6 +9,7 @@ stage=0
 # Set the locations of the GlobalPhone corpus and language models
 gp_corpus=/mnt/disk01/globalphone/German
 gp_lexicon=/mnt/corpora/Globalphone/GlobalPhoneLexicons/German/German-GPDict.txt
+gp_lm=http://www.csl.uni-bremen.de/GlobalPhone/lm/GE.3gram.lm.gz
 
 tmpdir=data/local/tmp/gp/german
 
@@ -109,7 +110,12 @@ if [ $stage -le 3 ]; then
     # prepare the lm
     mkdir -p data/local/lm
 
-    local/prepare_lm.sh
+        # get the reference lm from Bremen
+    wget \
+	-O data/local/lm/threegram.arpa.gz \
+	$gp_lm
+
+    #local/prepare_lm.sh
 
     utils/format_lm.sh \
 	data/lang \
