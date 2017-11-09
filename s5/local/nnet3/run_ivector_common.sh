@@ -31,17 +31,19 @@ done
 
 if [ $stage -le 1 ]; then
     # perturb data to get alignments
-    # nnet will be trained by high resolution data
+    # later  high resolution data will be extracted to train nnet 
     # _sp stands for speed-perturbed
-    echo "$0: preparing directory for low-resolution speed-perturbed data (for alignment)"
+    echo "$0: preparing directory for low-res speed-perturbed data (for alignment)"
     utils/data/perturb_data_dir_speed_3way.sh \
 	data/${train_set} \
 	data/${train_set}_sp
-    echo "$0: making MFCC features for low-resolution speed-perturbed data"
-    steps/make_mfcc.sh \
+
+    echo "$0: making plp pitch features for low-resolution speed-perturbed data"
+    steps/make_plp_pitch.sh \
 	--cmd "$train_cmd" \
 	--nj 10 \
 	data/${train_set}_sp || exit 1;
+
     steps/compute_cmvn_stats.sh \
 	data/${train_set}_sp || exit 1;
     utils/fix_data_dir.sh \
