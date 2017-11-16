@@ -41,7 +41,7 @@ if [ $stage -le 1 ]; then
     echo "$0: making plp pitch features for low-resolution speed-perturbed data"
     steps/make_plp_pitch.sh \
 	--cmd "$train_cmd" \
-	--nj 10 \
+	--nj 6 \
 	data/${train_set}_sp || exit 1;
 
     steps/compute_cmvn_stats.sh \
@@ -79,7 +79,7 @@ if [ $stage -le 3 ]; then
 
     for datadir in ${train_set}_sp ${test_sets}; do
 	steps/make_mfcc.sh \
-	    --nj 10 \
+	    --nj 6 \
 	    --mfcc-config conf/mfcc_hires.conf \
 	    --cmd "$train_cmd" \
 	    data/${datadir}_hires || exit 1;
@@ -174,7 +174,7 @@ if [ $stage -le 6 ]; then
     for data in $test_sets; do
 	steps/online/nnet2/extract_ivectors_online.sh \
 	    --cmd "$train_cmd" \
-	    --nj 8 \
+	    --nj 6 \
 	    data/${data}_hires \
 	    exp/nnet3${nnet3_affix}/extractor \
 	    exp/nnet3${nnet3_affix}/ivectors_${data}_hires
