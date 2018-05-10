@@ -27,15 +27,16 @@ while ( my $line = <$L> ) {
     chomp $line;
     my $d = dirname $line;
     my $b = basename $line, ".trl";
-
+    my $c = basename $d;
+    system "mkdir -p $tmpdir/$c";
     system "iconv \\
 -f ISO_8859-1 \\
 -t utf8 \\
 $line \\
 > \\
-$d/$b.txt";
+$tmpdir/$c/$b.txt";
 
-    open my $T, '<', "$d/$b.txt" or croak "problems with $d/$b.txt $!";
+    open my $T, '<', "$tmpdir/$c/$b.txt" or croak "problems with $tmpdir/$c/$b.txt $!";
     my $spkr = "";
     my $sn = 0;
     LINE: while ( my $linea = <$T> ) {

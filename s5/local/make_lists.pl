@@ -18,7 +18,7 @@ use File::Basename;
 my ($fld) = @ARGV;
 
 my $tmpdir = "data/local/tmp/gp/german";
-my $d = "/mnt/disk01/globalphone/German/adc";
+
 my $p = "$tmpdir/$fld/prompts.tsv";
 
 system "mkdir -p $tmpdir/$fld/lists";
