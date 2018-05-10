@@ -7,13 +7,15 @@ stage=0
 . ./utils/parse_options.sh
 
 # Set the locations of the GlobalPhone corpus and language models
-gp_corpus=/mnt/disk01/globalphone/German
+gp_corpus=/mnt/corpora/Globalphone/DEU_ASR003_WAV
 gp_lexicon=/mnt/corpora/Globalphone/GlobalPhoneLexicons/German/German-GPDict.txt
 gp_lm=http://www.csl.uni-bremen.de/GlobalPhone/lm/GE.3gram.lm.gz
 
 tmpdir=data/local/tmp/gp/german
-
-# global phone data prep
+decoding_jobs=5
+training_jobs=56
+# global phone d
+ata prep
 if [ $stage -le 0 ]; then
 
     mkdir -p $tmpdir/lists
@@ -143,7 +145,7 @@ if [ $stage -le 5 ]; then
     for fld in dev eval train ; do
 	steps/make_plp_pitch.sh \
 	    --cmd run.pl \
-	    --nj 4 \
+	    --nj $training_jobs \
 	    data/$fld \
 	    exp/make_plp_pitch/$fld \
 	    plp_pitch || exit 1;
@@ -164,7 +166,7 @@ fi
 if [ $stage -le 6 ]; then
     echo "Starting  monophone training in exp/mono on" `date`
     steps/train_mono.sh \
-	--nj 8 \
+	--nj $training_jobs \
 	--cmd run.pl \
 	data/train \
 	data/lang \
@@ -174,7 +176,7 @@ fi
 if [ $stage -le 7 ]; then
     # align with monophones
     steps/align_si.sh \
-	--nj 5 \
+	--nj $training_jobs \
 	--cmd run.pl \
 	data/train \
 	data/lang \
@@ -192,7 +194,7 @@ if [ $stage -le 8 ]; then
 
 	for fld in dev eval; do
 	    steps/decode.sh \
-		--nj 5 \
+		--nj $decoding_jobs \
 		--cmd "$decode_cmd" \
 		exp/mono/graph \
 		data/$fld \
@@ -217,7 +219,7 @@ fi
 if [ $stage -le 10 ]; then
     # align with triphones
     steps/align_si.sh \
-	--nj 5 \
+	--nj $training_jobs \
 	--cmd run.pl \
 	data/train \
 	data/lang \
@@ -236,7 +238,7 @@ if [ $stage -le 11 ]; then
 
 	for fld in dev eval; do
 	    steps/decode.sh \
-		--nj 5 \
+		--nj $decoding_jobs \
 		--cmd "$decode_cmd" \
 		exp/tri1/graph \
 		data/$fld \
@@ -261,7 +263,7 @@ if [ $stage -le 13 ]; then
     # align with lda and mllt adapted triphones
     steps/align_si.sh \
 	--use-graphs true \
-	--nj 5 \
+	--nj $training_jobs \
 	--cmd run.pl \
 	data/train \
 	data/lang \
@@ -281,7 +283,7 @@ if [ $stage -le 14 ]; then
 
 	for fld in dev eval; do
 	    steps/decode.sh \
-		--nj 5 \
+		--nj $decoding_jobs \
 		--cmd "$decode_cmd" \
 		exp/tri2b/graph \
 		data/$fld \
@@ -305,7 +307,7 @@ fi
 if [ $stage -le 16 ]; then
     echo "Starting exp/tri3b_ali on" `date`
     steps/align_fmllr.sh \
-	--nj 5 \
+	--nj $training_jobs \
 	--cmd run.pl \
 	data/train \
 	data/lang \
@@ -325,7 +327,7 @@ if [ $stage -le 17 ]; then
 
 	for fld in dev eval; do
 	    steps/decode_fmllr.sh \
-		--nj 5 \
+		--nj $decoding_jobs \
 		--cmd "$decode_cmd" \
 		exp/tri3b/graph \
 		data/$fld \
