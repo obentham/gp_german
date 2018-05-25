@@ -1,4 +1,4 @@
-#!/bin/bash -u
+.#!/bin/bash -u
 
 # Copyright 2017 John Morgan
 # Apache 2.0.
@@ -7,44 +7,26 @@ set -o errexit
 
 [ -f ./path.sh ] && . ./path.sh
 
+# The dictionary will end up under data/local/
 if [ ! -d data/local/dict ]; then
     mkdir -p data/local/dict
 fi
 
 export LC_ALL=C
 
-# get the phones
+# get the phones from the dictionary
 cut \
-    -f2- \
-    -d "	" \
-    data/local/tmp/gp/german/dict/lexicon.txt \
-    | \
-    tr -s '[:space:]' '[\n*]' \
-    | \
-    grep \
-	-v \
-	SPN \
-    | \
-        sort \
-    | \
-    uniq \
-	> \
-	data/local/dict/nonsilence_phones.txt
+    -f2- -d "	" data/local/tmp/gp/german/dict/lexicon.txt | \
+    tr -s '[:space:]' '[\n*]' | grep -v SPN | sort -u > \
+    data/local/dict/nonsilence_phones.txt
 
+# remove tabs
 expand \
-    data/local/tmp/gp/german/dict/lexicon.txt \
-    | \
-    sort \
-	| \
-    uniq \
-    | \
-    sed "1d" \
-	> \
-	data/local/dict/lexicon.txt
+    data/local/tmp/gp/german/dict/lexicon.txt | sort -u | sed "1d" > \
+    data/local/dict/lexicon.txt
 
-echo "<UNK>	SPN" \
-     >> \
-	data/local/dict/lexicon.txt
+# append an entry for the unknown symbol
+echo "<UNK>	SPN" >> data/local/dict/lexicon.txt
 
 # silence phones, one per line.
 {
