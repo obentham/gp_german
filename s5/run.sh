@@ -1,9 +1,14 @@
-#!/bin/bash -u
+#!/bin/bash -x
+# Recipe to build a kaldi ASR system on the Globalphone German corpus
+
+# source 2 files to get some environment variables
 . ./cmd.sh
 . ./path.sh
 
+# initialize the stage variable
 stage=0
 
+# source a file that will handle variables
 . ./utils/parse_options.sh
 
 # Set the locations of the GlobalPhone corpus and language models
@@ -11,89 +16,72 @@ gp_corpus=/mnt/corpora/Globalphone/DEU_ASR003_WAV
 gp_lexicon=/mnt/corpora/Globalphone/GlobalPhoneLexicons/German/German-GPDict.txt
 gp_lm=http://www.csl.uni-bremen.de/GlobalPhone/lm/GE.3gram.lm.gz
 
+#  set a variable to the directory where  data preparation will take place
 tmpdir=data/local/tmp/gp/german
+
+# The number of jobs you can run will depend on the system
 decoding_jobs=5
 training_jobs=56
-# global phone d
-ata prep
-if [ $stage -le 0 ]; then
 
+# global phone data prep
+if [ $stage -le 0 ]; then
     mkdir -p $tmpdir/lists
 
     # get list of globalphone .wav files
-    find \
-	$gp_corpus/adc \
-	-type f \
-	-name "*.wav" \
-	| \
-	sort \
-	    > \
-	    $tmpdir/lists/wav.txt
+        find $gp_corpus/adc -type f -name "*.wav" > $tmpdir/lists/wav.txt
 
-    find \
-	$gp_corpus/trl \
-	-type f \
-	-name "*.trl" \
-	| \
-	sort \
-	> \
-	$tmpdir/lists/trl.txt
+	# get list of files containing  transcripts
+    find $gp_corpus/trl -type f -name "*.trl" > $tmpdir/lists/trl.txt
 
     for fld in dev eval train; do
 	mkdir -p $tmpdir/$fld/lists
 
+	# the conf/dev_spk.list file has a list of the speakers in the dev fold.
+	# the conf/train_spk.list file has a list of the speakers in the training fold.
+	# the conf/eval_spk.list file has a list of the speakers in the testing fold.
+	# The following command will get the list .wav files restricted to only the speakers in the current fold.
 	grep \
-	    -f conf/${fld}_spk.list  \
-	    $tmpdir/lists/wav.txt  \
-	    > \
+	    -f conf/${fld}_spk.list  $tmpdir/lists/wav.txt  > \
 	    $tmpdir/$fld/lists/wav.txt
 
+	# Similarly for the .trl files.
 	grep \
-	    -f conf/${fld}_spk.list  \
-	    $tmpdir/lists/trl.txt  \
-	    > \
+	    -f conf/${fld}_spk.list  $tmpdir/lists/trl.txt  > \
 	    $tmpdir/$fld/lists/trl.txt
 
+	# write a file with a file-id to utterance map. 
 	local/get_prompts.pl $fld
 
-	# make training lists
+	# Acoustic model training requires 4 files containing maps:
+	# 1. wav.scp
+	# 2. utt2spk
+	# 3. spk2utt
+	# 4. text
+	
+	# make the required acoustic model training lists
+	# This is first done in the working directory.
 	local/make_lists.pl $fld
 
-	utils/fix_data_dir.sh \
-	    $tmpdir/$fld/lists
+	utils/fix_data_dir.sh $tmpdir/$fld/lists
 
 	# consolidate  data lists
 	mkdir -p data/$fld
 	for x in wav.scp text utt2spk; do
-	    cat \
-		$tmpdir/$fld/lists/$x \
-		| \
-		sort \
-		    >> \
-		    data/$fld/$x
+	    cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
 	done
 
-	utils/utt2spk_to_spk2utt.pl \
-	    data/$fld/utt2spk \
-	    | \
-	    sort \
-		> \
-		data/$fld/spk2utt
+	# The spk2utt file can be generated from the utt2spk file. 
+	utils/utt2spk_to_spk2utt.pl data/$fld/utt2spk | sort > data/$fld/spk2utt
 
-	utils/fix_data_dir.sh \
-	    data/$fld
+	utils/fix_data_dir.sh data/$fld
     done
 fi
 
+# Process the pronouncing dictionary
 if [ $stage -le 1 ]; then
     mkdir -p $tmpdir/dict
 
-    local/gp_norm_dict_GE.pl \
-	-i $gp_lexicon \
-	| \
-	sort -u \
-	     > \
-	     $tmpdir/dict/lexicon.txt || exit 1;
+    local/gp_norm_dict_GE.pl -i $gp_lexicon | sort -u > $tmpdir/dict/lexicon.txt
 
     local/prepare_dict.sh
 fi
