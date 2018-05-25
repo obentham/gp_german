@@ -4,6 +4,7 @@
 # source 2 files to get some environment variables
 . ./cmd.sh
 . ./path.sh
+# The path.sh file has a  variable that points to the kaldi code.
 
 # initialize the stage variable
 stage=0
