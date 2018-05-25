@@ -1,5 +1,10 @@
 #!/usr/bin/perl -w
 # get_prompts.pl - make  a prompts file
+# The recordds in a prompts file  has the format:
+# <FILE_ID>	<Utterance transcription>
+# This  script first writes text files containing transcripts.
+# The text files are stored under a directory named trl
+# Then the script reads these text files and writes the prompts.tsv file
 
 use strict;
 use warnings;
@@ -7,6 +12,7 @@ use Carp;
 
 BEGIN {
     @ARGV == 1 or croak "USAGE: get_prompts.pl <FOLD>
+For example:
 $0 dev
 ";
 }
