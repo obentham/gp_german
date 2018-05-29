@@ -167,7 +167,7 @@ if [ $stage -le 5 ]; then
 	utils/fix_data_dir.sh data/$fld
     done
 fi
-exit
+
 if [ $stage -le 6 ]; then
     echo "Starting  monophone training in exp/mono on" `date`
     steps/train_mono.sh \
