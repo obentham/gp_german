@@ -8,6 +8,7 @@ use Carp;
 BEGIN {
     @ARGV == 1 or croak "USAGE: make_lists.pl <FOLD>
 $0 dev
+The prompts.tsv file must have been written in a previous step.
 ";
 }
 
@@ -20,6 +21,7 @@ my ($fld) = @ARGV;
 my $tmpdir = "data/local/tmp/gp/german";
 
 my $p = "$tmpdir/$fld/prompts.tsv";
+croak "The prompts.tsv file is required $!" unless ( -f $p );
 
 system "mkdir -p $tmpdir/$fld/lists";
 
