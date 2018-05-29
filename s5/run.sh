@@ -4,10 +4,13 @@
 # source 2 files to get some environment variables
 . ./cmd.sh
 . ./path.sh
-# The path.sh file has a  variable that points to the kaldi code.
+# The path.sh file has a  variable that points to the kaldi source code.
 
 # initialize the stage variable
 stage=0
+
+# Use the following command to run this script starting at stage 2:
+# nohup ./run.sh --stage 2 > run_stage_2.log &
 
 # source a file that will handle variables
 . ./utils/parse_options.sh
@@ -15,6 +18,8 @@ stage=0
 # Set the locations of the GlobalPhone corpus and language models
 gp_corpus=/mnt/corpora/Globalphone/DEU_ASR003_WAV
 gp_lexicon=/mnt/corpora/Globalphone/GlobalPhoneLexicons/German/German-GPDict.txt
+
+# Set a variable that points to a URL for a standard German language model
 gp_lm=http://www.csl.uni-bremen.de/GlobalPhone/lm/GE.3gram.lm.gz
 
 #  set a variable to the directory where  data preparation will take place
@@ -35,6 +40,7 @@ if [ $stage -le 0 ]; then
     find $gp_corpus/trl -type f -name "*.trl" > $tmpdir/lists/trl.txt
 
     for fld in dev eval train; do
+	# each fold will have a separate working directory
 	mkdir -p $tmpdir/$fld/lists
 
 	# the conf/dev_spk.list file has a list of the speakers in the dev fold.
@@ -45,7 +51,7 @@ if [ $stage -le 0 ]; then
 	    -f conf/${fld}_spk.list  $tmpdir/lists/wav.txt  > \
 	    $tmpdir/$fld/lists/wav.txt
 
-	# Similarly for the .trl files.
+	# Similarly for the .trl files that contain transliterations.
 	grep \
 	    -f conf/${fld}_spk.list  $tmpdir/lists/trl.txt  > \
 	    $tmpdir/$fld/lists/trl.txt
@@ -58,14 +64,14 @@ if [ $stage -le 0 ]; then
 	# 2. utt2spk
 	# 3. spk2utt
 	# 4. text
-	
+
 	# make the required acoustic model training lists
-	# This is first done in the working directory.
+	# This is first done in the temporary working directory.
 	local/make_lists.pl $fld
 
 	utils/fix_data_dir.sh $tmpdir/$fld/lists
 
-	# consolidate  data lists
+	# consolidate  data lists into files under data
 	mkdir -p data/$fld
 	for x in wav.scp text utt2spk; do
 	    cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
@@ -77,28 +83,38 @@ if [ $stage -le 0 ]; then
 	utils/fix_data_dir.sh data/$fld
     done
 fi
-
+exit
 # Process the pronouncing dictionary
 if [ $stage -le 1 ]; then
     mkdir -p $tmpdir/dict
 
+    # The following  script is part of the original Globalphone kaldi recipe
     local/gp_norm_dict_GE.pl -i $gp_lexicon | sort -u > $tmpdir/dict/lexicon.txt
 
+    # Make some lists related to the lexicon
+    # Including:
+    # 1. A list of non-silence phones,
+    # 2. A list of silence phones,
+     # 3. A list of silence related questions for model clustering.
+    # 4. A list of optional silence symbols
     local/prepare_dict.sh
+    # The prepared lexicon is also written.
 fi
 
 if [ $stage -le 2 ]; then
     # prepare lang directory
+    # The lang directory will contain several files.
+    # Including the finite state transducer file for the lexicon and grammar.
+    # The lexicon fst will be stored in L.fst.
+    # The grammar (ngram language model) will be stored in G.fst.
+    # G.fst will be generated in a later step.
     utils/prepare_lang.sh \
-	--position-dependent-phones true \
-	data/local/dict \
-	"<UNK>" \
-	data/local/lang_tmp \
-	data/lang || exit 1;
+	--position-dependent-phones true data/local/dict "<UNK>" \
+	data/local/lang_tmp data/lang
 fi
 
 if [ $stage -le 3 ]; then
-    # prepare the lm
+    # prepare the n-gram language model
     mkdir -p data/local/lm
 
         # get the reference lm from Bremen
@@ -106,12 +122,13 @@ if [ $stage -le 3 ]; then
 	-O data/local/lm/threegram.arpa.gz \
 	$gp_lm
 
+    # The following command creates an lm with the training  data:
     #local/prepare_lm.sh
 
+    # Now generate the G.fst file from the lm.
+    # Notice that it will be stored under data/lang_test.
     utils/format_lm.sh \
-	data/lang \
-	data/local/lm/threegram.arpa.gz \
-	data/local/dict/lexicon.txt \
+	data/lang data/local/lm/threegram.arpa.gz data/local/dict/lexicon.txt \
 	data/lang_test
 fi
 
@@ -123,35 +140,24 @@ if [ $stage -le 4 ]; then
 	data/lang_test
 fi
 
+# extract acoustic features
 if [ $stage -le 5 ]; then
-    # extract acoustic features
-    mkdir -p exp
-
-    if [ -e data/train/cmvn.scp ]; then
-	rm data/train/cmvn.scp
-    fi
-
+    # This stage will create the exp directory where most of the rest of the work will take place.
+    # The feature files will be stored under plp_pitch
+    # plp and pitch features are extracted.
     for fld in dev eval train ; do
 	steps/make_plp_pitch.sh \
-	    --cmd run.pl \
-	    --nj $training_jobs \
-	    data/$fld \
-	    exp/make_plp_pitch/$fld \
-	    plp_pitch || exit 1;
+	    --cmd run.pl --nj $training_jobs data/$fld exp/make_plp_pitch/$fld \
+	    plp_pitch
 
-	utils/fix_data_dir.sh \
-	    data/$fld || exit 1;
+	utils/fix_data_dir.sh data/$fld
 
-	steps/compute_cmvn_stats.sh \
-	    data/$fld \
-	    exp/make_plp_pitch/$fld \
-	    plp_pitch || exit 1;
+	steps/compute_cmvn_stats.sh data/$fld exp/make_plp_pitch/$fld plp_pitch
 
-	utils/fix_data_dir.sh \
-	    data/$fld || exit 1;
+	utils/fix_data_dir.sh data/$fld
     done
 fi
-
+exit
 if [ $stage -le 6 ]; then
     echo "Starting  monophone training in exp/mono on" `date`
     steps/train_mono.sh \
