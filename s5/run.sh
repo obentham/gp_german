@@ -9,14 +9,24 @@
 # initialize the stage variable
 stage=0
 
+# How do stages work?
 # Use the following command to run this script starting at stage 2:
 # nohup ./run.sh --stage 2 > run_stage_2.log &
+# Use the <--stage n> option to start at stage n.
+# Insert <exit> after stage.
+# Maybe there are better ways of implementing stages?
 
-# source a file that will handle variables
+# source a file that will handle options like --stage
 . ./utils/parse_options.sh
 
 # Set the locations of the GlobalPhone corpus and language models
 gp_corpus=/mnt/corpora/Globalphone/DEU_ASR003_WAV
+# This points to the directory where we have the database of speech recordings.
+# You should browse that directory.
+# There are recordings from 77 speakers.
+# Each speaker has its own directory.
+# Listen to some of the recordings.
+
 gp_lexicon=/mnt/corpora/Globalphone/GlobalPhoneLexicons/German/German-GPDict.txt
 
 # Set a variable that points to a URL for a standard German language model
@@ -83,7 +93,7 @@ if [ $stage -le 0 ]; then
 	utils/fix_data_dir.sh data/$fld
     done
 fi
-exit
+
 # Process the pronouncing dictionary
 if [ $stage -le 1 ]; then
     mkdir -p $tmpdir/dict
