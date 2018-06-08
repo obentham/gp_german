@@ -1,4 +1,5 @@
-#!/bin/bash -x
+#!/bin/bash
+# -x
 # Recipe to build a kaldi ASR system on the Globalphone German corpus
 
 # source 2 files to get some environment variables
@@ -50,47 +51,53 @@ if [ $stage -le 0 ]; then
     find $gp_corpus/trl -type f -name "*.trl" > $tmpdir/lists/trl.txt
 
     for fld in dev eval train; do
-	# each fold will have a separate working directory
-	mkdir -p $tmpdir/$fld/lists
+		# each fold will have a separate working directory
+		mkdir -p $tmpdir/$fld/lists
 
-	# the conf/dev_spk.list file has a list of the speakers in the dev fold.
-	# the conf/train_spk.list file has a list of the speakers in the training fold.
-	# the conf/eval_spk.list file has a list of the speakers in the testing fold.
-	# The following command will get the list .wav files restricted to only the speakers in the current fold.
-	grep \
-	    -f conf/${fld}_spk.list  $tmpdir/lists/wav.txt  > \
-	    $tmpdir/$fld/lists/wav.txt
+		# the conf/dev_spk.list file has a list of the speakers in the dev fold.
+		# the conf/train_spk.list file has a list of the speakers in the training fold.
+		# the conf/eval_spk.list file has a list of the speakers in the testing fold.
+		# The following command will get the list .wav files restricted to only the speakers in 		the current fold.
+		grep \
+	    	-f conf/${fld}_spk.list  $tmpdir/lists/wav.txt  > \
+	    	$tmpdir/$fld/lists/wav.txt
 
-	# Similarly for the .trl files that contain transliterations.
-	grep \
-	    -f conf/${fld}_spk.list  $tmpdir/lists/trl.txt  > \
-	    $tmpdir/$fld/lists/trl.txt
+		# Similarly for the .trl files that contain transliterations.
+		grep \
+		    -f conf/${fld}_spk.list  $tmpdir/lists/trl.txt  > \
+		    $tmpdir/$fld/lists/trl.txt
 
-	# write a file with a file-id to utterance map. 
-	local/get_prompts.pl $fld
+		# write a file with a file-id to utterance map. 
+		local/get_prompts.pl $fld
 
-	# Acoustic model training requires 4 files containing maps:
-	# 1. wav.scp
-	# 2. utt2spk
-	# 3. spk2utt
-	# 4. text
+		# Acoustic model training requires 4 files containing maps:
+		# 1. wav.scp
+		# 2. utt2spk
+		# 3. spk2utt
+		# 4. text
 
-	# make the required acoustic model training lists
-	# This is first done in the temporary working directory.
-	local/make_lists.pl $fld
+		# make the required acoustic model training lists
+		# This is first done in the temporary working directory.
+		local/make_lists.pl $fld
 
-	utils/fix_data_dir.sh $tmpdir/$fld/lists
+		utils/fix_data_dir.sh $tmpdir/$fld/lists
 
-	# consolidate  data lists into files under data
-	mkdir -p data/$fld
-	for x in wav.scp text utt2spk; do
-	    cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
-	done
+		# consolidate  data lists into files under data
+		mkdir -p data/$fld
+		for x in wav.scp text utt2spk; do
+			# lowercase sentences in text files
+			if [ "$x" == "text" ]; then
+				bash local/text.sh $tmpdir/$fld/lists
+				cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
+			else
+				cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
+			fi
+		done
 
-	# The spk2utt file can be generated from the utt2spk file. 
-	utils/utt2spk_to_spk2utt.pl data/$fld/utt2spk | sort > data/$fld/spk2utt
+		# The spk2utt file can be generated from the utt2spk file. 
+		utils/utt2spk_to_spk2utt.pl data/$fld/utt2spk | sort > data/$fld/spk2utt
 
-	utils/fix_data_dir.sh data/$fld
+		utils/fix_data_dir.sh data/$fld
     done
 fi
 
