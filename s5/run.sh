@@ -87,7 +87,8 @@ if [ $stage -le 0 ]; then
 		for x in wav.scp text utt2spk; do
 			# lowercase sentences in text files
 			if [ "$x" == "text" ]; then
-				bash local/text.sh $tmpdir/$fld/lists
+				bash local/lowercase.sh $tmpdir/$fld/lists
+				bash local/ssconvert.sh $tmpdir/$fld/lists/text
 				cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
 			else
 				cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
@@ -107,12 +108,15 @@ if [ $stage -le 1 ]; then
 
     # The following  script is part of the original Globalphone kaldi recipe
     local/gp_norm_dict_GE.pl -i $gp_lexicon | sort -u > $tmpdir/dict/lexicon.txt
+    
+    # run lexicon through ssconvert
+    bash local/ssconvert.sh $tmpdir/dict/lexicon.txt
 
     # Make some lists related to the lexicon
     # Including:
     # 1. A list of non-silence phones,
     # 2. A list of silence phones,
-     # 3. A list of silence related questions for model clustering.
+    # 3. A list of silence related questions for model clustering.
     # 4. A list of optional silence symbols
     local/prepare_dict.sh
     # The prepared lexicon is also written.
@@ -134,13 +138,13 @@ if [ $stage -le 3 ]; then
     # prepare the n-gram language model
     mkdir -p data/local/lm
 
-        # get the reference lm from Bremen
+    # get the reference lm from Bremen
     wget \
 	-O data/local/lm/threegram.arpa.gz \
 	$gp_lm
 
     # The following command creates an lm with the training  data:
-    #local/prepare_lm.sh
+    # local/prepare_lm.sh
 
     # Now generate the G.fst file from the lm.
     utils/format_lm.sh \
@@ -198,6 +202,8 @@ if [ $stage -le 8 ]; then
     ) &
     # Testing can be run in the background
 fi
+
+exit
 
 if [ $stage -le 9 ]; then
     # This is the first step  for training context dependent acoustic models
