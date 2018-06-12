@@ -85,10 +85,11 @@ if [ $stage -le 0 ]; then
 		# consolidate  data lists into files under data
 		mkdir -p data/$fld
 		for x in wav.scp text utt2spk; do
-			# lowercase sentences in text files
+			# lowercase, ß to ss, remove commas in text files
 			if [ "$x" == "text" ]; then
 				bash local/lowercase.sh $tmpdir/$fld/lists
 				bash local/ssconvert.sh $tmpdir/$fld/lists/text
+				bash local/remove_commas.sh $tmpdir/$fld/lists/text
 				cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
 			else
 				cat $tmpdir/$fld/lists/$x | sort >> data/$fld/$x
