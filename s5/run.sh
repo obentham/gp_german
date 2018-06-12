@@ -139,12 +139,12 @@ if [ $stage -le 3 ]; then
     mkdir -p data/local/lm
 
     # get the reference lm from Bremen
-    wget \
-	-O data/local/lm/threegram.arpa.gz \
-	$gp_lm
+    #wget \
+	#-O data/local/lm/threegram.arpa.gz \
+	#$gp_lm
 
     # The following command creates an lm with the training  data:
-    # local/prepare_lm.sh
+    local/prepare_lm.sh
 
     # Now generate the G.fst file from the lm.
     utils/format_lm.sh \

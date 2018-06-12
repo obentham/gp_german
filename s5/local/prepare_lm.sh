@@ -16,6 +16,9 @@ fi
 
 # use only training prompts
 cut -f 2 data/train/text > data/local/lm/training_text.txt
+# generate lm from eval and dev data sets as well
+cut -f 2 data/eval/text >> data/local/lm/training_text.txt
+cut -f 2 data/dev/text >> data/local/lm/training_text.txt
 corpus=data/local/lm/training_text.txt
 
 ngram-count \
