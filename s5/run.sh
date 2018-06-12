@@ -203,8 +203,6 @@ if [ $stage -le 8 ]; then
     # Testing can be run in the background
 fi
 
-exit
-
 if [ $stage -le 9 ]; then
     # This is the first step  for training context dependent acoustic models
     echo "Starting  triphone training in exp/tri1 on" `date`
