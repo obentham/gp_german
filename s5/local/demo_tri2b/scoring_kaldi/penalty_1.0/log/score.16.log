@@ -1,0 +1,5 @@
+# cat .//scoring_kaldi/penalty_1.0/16.txt | compute-wer --text --mode=present ark:.//scoring_kaldi/test_filt.txt ark,p:- >& .//wer_16_1.0 
+# Started at Fri Jun 15 15:46:19 EDT 2018
+#
+# Accounting: time=0 threads=1
+# Ended (code 0) at Fri Jun 15 15:46:19 EDT 2018, elapsed time 0 seconds

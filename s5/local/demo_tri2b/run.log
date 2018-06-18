@@ -1,0 +1,16 @@
+./steps/make_plp_pitch.sh --nj 1 ./ ./log ./
+./steps/make_plp_pitch.sh: moving .//feats.scp to .//.backup
+utils/validate_data_dir.sh: WARNING: you have only one speaker.  This probably a bad idea.
+   Search for the word 'bold' in http://kaldi-asr.org/doc/data_prep.html
+   for more information.
+utils/validate_data_dir.sh: Successfully validated data-directory ./
+./steps/make_plp_pitch.sh: [info]: no segments file exists: assuming wav.scp indexed by utterance.
+Succeeded creating PLP & Pitch features for .
+fix_data_dir.sh: kept all 1 utterances.
+fix_data_dir.sh: old files are kept in ./.backup
+./steps/compute_cmvn_stats.sh ./ ./log ./
+Succeeded creating CMVN stats for .
+fix_data_dir.sh: kept all 1 utterances.
+fix_data_dir.sh: old files are kept in .//.backup
+./score.sh --cmd ./utils/run.pl ./ ./ ./
+./score.sh: scoring with word insertion penalty=0.0,0.5,1.0

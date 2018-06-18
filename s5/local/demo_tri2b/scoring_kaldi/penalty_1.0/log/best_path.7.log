@@ -1,0 +1,14 @@
+# lattice-scale --inv-acoustic-scale=7 "ark:gunzip -c .//lat.*.gz|" ark:- | lattice-add-penalty --word-ins-penalty=1.0 ark:- ark:- | lattice-best-path --word-symbol-table=.//words.txt ark:- ark,t:- | utils/int2sym.pl -f 2- .//words.txt | cat > .//scoring_kaldi/penalty_1.0/7.txt 
+# Started at Fri Jun 15 15:46:19 EDT 2018
+#
+lattice-best-path --word-symbol-table=.//words.txt ark:- ark,t:- 
+lattice-scale --inv-acoustic-scale=7 'ark:gunzip -c .//lat.*.gz|' ark:- 
+lattice-add-penalty --word-ins-penalty=1.0 ark:- ark:- 
+LOG (lattice-scale[5.4.163~1-04b1f]:main():lattice-scale.cc:107) Done 1 lattices.
+LOG (lattice-add-penalty[5.4.163~1-04b1f]:main():lattice-add-penalty.cc:62) Done adding word insertion penalty to 1 lattices.
+LOG (lattice-best-path[5.4.163~1-04b1f]:main():lattice-best-path.cc:99) For utterance TestSound.adc, best cost 48.2216 + 2657.94 = 2706.16 over 328 frames.
+TestSound.adc was war die sowjetunion 
+LOG (lattice-best-path[5.4.163~1-04b1f]:main():lattice-best-path.cc:124) Overall cost per frame is 8.25048 = 0.147017 [graph] + 8.10347 [acoustic] over 328 frames.
+LOG (lattice-best-path[5.4.163~1-04b1f]:main():lattice-best-path.cc:128) Done 1 lattices, failed for 0
+# Accounting: time=0 threads=1
+# Ended (code 0) at Fri Jun 15 15:46:19 EDT 2018, elapsed time 0 seconds
