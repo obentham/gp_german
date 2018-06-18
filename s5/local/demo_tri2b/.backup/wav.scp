@@ -1,0 +1,1 @@
+TestSound.adc	sox /home/student/gp_german/s5/local/demo/test.wav -t .wav - |
