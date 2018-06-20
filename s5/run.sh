@@ -42,10 +42,11 @@ nj=56
 
 # global phone data prep
 if [ $stage -le 0 ]; then
+    
     mkdir -p $tmpdir/lists
 
     # get list of globalphone .wav files
-        find $gp_corpus/adc -type f -name "*.wav" > $tmpdir/lists/wav.txt
+    find $gp_corpus/adc -type f -name "*.wav" > $tmpdir/lists/wav.txt
 
 	# get list of files containing  transcripts
     find $gp_corpus/trl -type f -name "*.trl" > $tmpdir/lists/trl.txt
@@ -57,7 +58,7 @@ if [ $stage -le 0 ]; then
 		# the conf/dev_spk.list file has a list of the speakers in the dev fold.
 		# the conf/train_spk.list file has a list of the speakers in the training fold.
 		# the conf/eval_spk.list file has a list of the speakers in the testing fold.
-		# The following command will get the list .wav files restricted to only the speakers in 		the current fold.
+		# The following command will get the list .wav files restricted to only the speakers in 			the current fold.
 		grep \
 	    	-f conf/${fld}_spk.list  $tmpdir/lists/wav.txt  > \
 	    	$tmpdir/$fld/lists/wav.txt
@@ -87,12 +88,13 @@ if [ $stage -le 0 ]; then
 		for x in wav.scp text utt2spk; do
 			# lowercase, ß to ss, remove commas in text files
 			if [ "$x" == "text" ]; then
+				echo "lowercase, ß to ss, remove commas in text files"
 				bash local/lowercase.sh $tmpdir/$fld/lists
 				bash local/ssconvert.sh $tmpdir/$fld/lists/text
 				bash local/remove_commas.sh $tmpdir/$fld/lists/text
-				cat $tmpdir/$fld/lists/$x | expand -t 1 | sort >> data/$fld/$x
+				cat $tmpdir/$fld/lists/$x | expand -t 1 | dos2unix | sort >> data/$fld/$x
 			else
-				cat $tmpdir/$fld/lists/$x | expand -t 1 | sort >> data/$fld/$x
+				cat $tmpdir/$fld/lists/$x | expand -t 1 | dos2unix | sort >> data/$fld/$x
 			fi
 		done
 
